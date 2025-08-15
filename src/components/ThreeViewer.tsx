@@ -15,13 +15,15 @@ function Scene({ models }: { models: string[] }) {
   const [loadedModels, setLoadedModels] = useState<THREE.Group[]>([]);
 
   useEffect(() => {
-    if (models.length === 0) return;
+    // Only try to load if we have real URLs (containing http/https)
+    const realModelUrls = models.filter(url => url.startsWith('http'));
+    if (realModelUrls.length === 0) return;
 
     const loader = new GLTFLoader();
     const loadedGroups: THREE.Group[] = [];
 
     Promise.all(
-      models.map((modelUrl) =>
+      realModelUrls.map((modelUrl) =>
         new Promise<THREE.Group>((resolve, reject) => {
           loader.load(
             modelUrl,
@@ -59,12 +61,22 @@ function Scene({ models }: { models: string[] }) {
 
   return (
     <group ref={groupRef}>
-      {/* Placeholder content when no models are loaded */}
-      {loadedModels.length === 0 && (
-        <mesh>
-          <boxGeometry args={[1, 1, 1]} />
-          <meshStandardMaterial color="#666" wireframe />
-        </mesh>
+      {/* Show placeholder cubes when models are "fetched" but not real URLs */}
+      {models.length > 0 && loadedModels.length === 0 && (
+        <>
+          <mesh position={[-1, 0, 0]}>
+            <boxGeometry args={[0.8, 0.8, 0.8]} />
+            <meshStandardMaterial color="#4f46e5" />
+          </mesh>
+          <mesh position={[1, 0, 0]}>
+            <boxGeometry args={[0.8, 0.8, 0.8]} />
+            <meshStandardMaterial color="#06b6d4" />
+          </mesh>
+          <mesh position={[0, 1, 0]}>
+            <boxGeometry args={[0.8, 0.8, 0.8]} />
+            <meshStandardMaterial color="#10b981" />
+          </mesh>
+        </>
       )}
     </group>
   );
